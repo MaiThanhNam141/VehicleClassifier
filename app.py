@@ -49,8 +49,9 @@ def predict():
         # Make prediction
         predicted_class_name = Categories[predicted_class[0]]
         probabilities_list = [(Categories[i], probability[0][i]) for i in range(len(Categories))]
-
-        return render_template('result.html', predicted_category=predicted_class_name, img_url=url, accuracies=probabilities_list)
+        accuracy_ratio = probability[0][predicted_class[0]]
+        
+        return render_template('result.html', predicted_category=predicted_class_name, img_url=url, accuracies=probabilities_list, correct=accuracy_ratio)
 
     except Exception as e:
         error_message = f"Error processing image: {str(e)}"
