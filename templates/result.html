@@ -37,51 +37,25 @@
             max-width: 100%;
             max-height: 80vh;
             width: 350px;
-            height: 350px; 
+            height: 350px;
             object-fit: contain;
         }
         canvas {
-            margin-top: 20px; 
+            margin-top: 20px;
         }
         .button {
-            box-sizing: border-box;
-            -webkit-appearance: none;
-                -moz-appearance: none;
-                    appearance: none;
-            background-color: transparent;
-            border: 2px solid #e74c3c;
-            border-radius: 0.6em;
-            color: #e74c3c;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
             cursor: pointer;
-            display: -webkit-box;
-            display: -webkit-flex;
-            display: -ms-flexbox;
-            display: flex;
-            -webkit-align-self: center;
-                -ms-flex-item-align: center;
-                    align-self: center;
-            font-size: 1rem;
-            font-weight: 400;
-            line-height: 1;
-            margin: 20px;
-            padding: 1.2em 2.8em;
-            text-decoration: none;
-            text-align: center;
-            text-transform: uppercase;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            border-color: #3498db;
-            color: #fff;
-            box-shadow: 0 0 40px 40px #3498db inset, 0 0 0 0 #3498db;
-            -webkit-transition: all 150ms ease-in-out;
-            transition: all 150ms ease-in-out;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
         }
         .button:hover {
-            box-shadow: 0 0 10px 0 #3498db inset, 0 0 10px 4px #3498db;
-            color: #000;
-            outline: 0;
+            background-color: #2980b9;
         }
-
     </style>
 </head>
 <body>
@@ -89,7 +63,7 @@
         <h1>Result</h1>
         <div class="result-container">
             <div>
-                <p>The predicted image is: {{ predicted_category }} with {{ correct*100 }}%</p>
+                <p>Hình ảnh được cung cấp là: {{ predicted_category }} với {{ correct*100 }}% tỉ lệ chính xác</p>
                 {% if img_url %}
                     <img src="{{ img_url }}" alt="Predicted Image">
                 {% else %}
@@ -97,7 +71,8 @@
                 {% endif %}
             </div>
             <div>
-                <canvas id="accuracyChart" width="350" height="350"></canvas>
+                <canvas id="accuracyPieChart" width="600" height="200"></canvas>
+                <canvas id="accuracyBarChart" width="600" height="300"></canvas>
                 <ul id="accuracyData" style="display: none;">
                     {% for class_name, probability in accuracies %}
                         <li data-class="{{ class_name }}" data-probability="{{ probability * 100 }}"></li>
@@ -112,19 +87,19 @@
             window.location.href = 'http://127.0.0.1:5000';
         }
         document.addEventListener('DOMContentLoaded', function() {
-            var ctx = document.getElementById('accuracyChart').getContext('2d');
-    
             var accuraciesData = document.querySelectorAll('#accuracyData li');
             var classNames = [];
             var probabilities = [];
-
+            
             accuraciesData.forEach(function(item) {
                 classNames.push(item.getAttribute('data-class'));
                 probabilities.push(parseFloat(item.getAttribute('data-probability')));
             });
-    
-            // Create pie chart
-            var accuracyChart = new Chart(ctx, {
+            
+            var pieCtx = document.getElementById('accuracyPieChart').getContext('2d');
+            var barCtx = document.getElementById('accuracyBarChart').getContext('2d');
+            
+            var chartConfig = {
                 type: 'pie',
                 data: {
                     labels: classNames,
@@ -156,8 +131,29 @@
                         text: 'Class Probabilities (%)'
                     }
                 }
+            };
+            
+            new Chart(pieCtx, chartConfig);
+            
+            new Chart(barCtx, {
+                type: 'bar',
+                data: chartConfig.data,
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: false,
+                    title: {
+                        display: true,
+                        text: 'Class Probabilities (%)'
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
             });
         });
-    </script>    
+    </script>
 </body>
 </html>

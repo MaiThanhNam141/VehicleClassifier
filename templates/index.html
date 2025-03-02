@@ -1,35 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/style.css">
     <title>Image Classifier</title>
     <style>
-        /* CSS cho hiệu ứng loading */
         .loading {
-            display: none; /* Mặc định ẩn hiệu ứng loading */
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(255, 255, 255, 0.5); /* Màu nền semi-transparent */
+            background-color: rgba(255, 255, 255, 0.5);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 9999; /* Đặt vị trí trên cùng */
+            z-index: 9999;
         }
+
         .loading img {
-            width: 50px; /* Kích thước ảnh loading */
+            width: 50px;
         }
+
         body {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
         }
+
         #drop-area {
             width: 300px;
             height: 200px;
@@ -40,152 +44,103 @@
             align-items: center;
             margin-top: 20px;
         }
+
         #drop-area.hover {
             background-color: #f0f0f0;
         }
-        .submitBtn {
-            width: 300;
-            height: 300;
-            border-radius: 15;
 
+        .preview-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .preview-container img {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
+
 <body>
-    <!-- Hiển thị hiệu ứng loading nếu show_loading là true -->
     {% if show_loading %}
     <div class="loading">
         <img src="/static/loading.gif" alt="Loading...">
     </div>
     {% endif %}
 
-    <!-- Nội dung chính của trang -->
     <form action="/predict" method="post" enctype="multipart/form-data">
-        <h1 style="cursor: context-menu;">Image Classifier</h1>
-        <label for="image_url" style="cursor: context-menu;">Enter URL of Image:</label><br>
-        <input type="text" id="image_url" name="image_url" placeholder="Link hình ảnh" ><br><br>
-        <div id="drop-area" style="cursor: pointer;">
-            <p style="cursor: pointer;">Drag and drop an image here, or click to select an image.</p>
-            <input type="file" id="fileElem" multiple accept="image/*" style="display:none">
+        <h1>Image Classifier</h1>
+        <label for="image_url">Enter URL of Image:</label><br>
+        <input type="text" id="image_url" name="image_url" placeholder="Link hình ảnh" oninput="updatePreview()"><br><br>
+        <div style="flex-direction: row; display: flex; justify-content: center; align-items: center; ">
+            <div id="drop-area" style="margin-right: 20px;">
+                <p>Drag and drop an image here, or click to select an image.</p>
+                <input type="file" id="fileElem" accept="image/*" style="display:none">
+            </div>
+            <div class="preview-container" id="preview-container">
+                <p>Selected Image:</p>
+                <img id="image-preview" src="" alt="Image Preview">
+            </div>
         </div>
-
-        <button class="button">
-            <span class="submit">Submit</span>
-            <span class="loading"><i class="fa fa-refresh"></i></span>
-            <span class="check"><i class="fa fa-check"></i></span>
-        </button>
+        <button class="button">Submit</button>
     </form>
 
-    <!-- Script để ẩn hiệu ứng loading sau khi trang được tải -->
     <script>
-        // Ẩn hiệu ứng loading sau khi trang được tải
-        document.addEventListener('DOMContentLoaded', function() {
-            var loadingElement = document.querySelector('.loading');
-            var inputText = document.querySelector('#image_url')
-
-            if (loadingElement) {
-                loadingElement.style.display = 'none';
-            }
-
-            // Xử lý sự kiện khi kéo và thả vào drop area
+        document.addEventListener('DOMContentLoaded', function () {
             var dropArea = document.getElementById('drop-area');
-
-            dropArea.addEventListener('dragenter', function(e) {
-                e.preventDefault();
-                dropArea.classList.add('hover');
-            });
-
-            dropArea.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                dropArea.classList.add('hover');
-            });
-
-            dropArea.addEventListener('dragleave', function(e) {
-                e.preventDefault();
-                dropArea.classList.remove('hover');
-            });
-
-            dropArea.addEventListener('drop', function(e) {
-                e.preventDefault();
-                dropArea.classList.remove('hover');
-
-                var files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    var file = files[0];
-                    handleImageUpload(file);
-                }
-            });
-
-            // Xử lý sự kiện khi click để chọn hình ảnh
             var fileElem = document.getElementById('fileElem');
-            dropArea.addEventListener('click', function(e) {
+            var imagePreview = document.getElementById('image-preview');
+            var previewContainer = document.getElementById('preview-container');
+
+            dropArea.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                dropArea.classList.add('hover');
+            });
+
+            dropArea.addEventListener('dragleave', function (e) {
+                e.preventDefault();
+                dropArea.classList.remove('hover');
+            });
+
+            dropArea.addEventListener('drop', function (e) {
+                e.preventDefault();
+                dropArea.classList.remove('hover');
+                handleImageUpload(e.dataTransfer.files[0]);
+            });
+
+            dropArea.addEventListener('click', function () {
                 fileElem.click();
             });
 
-            fileElem.addEventListener('change', function(e) {
-                var file = fileElem.files[0];
-                handleImageUpload(file);
+            fileElem.addEventListener('change', function () {
+                handleImageUpload(fileElem.files[0]);
             });
 
             function handleImageUpload(file) {
                 var reader = new FileReader();
-
-                reader.onload = function(event) {
-                    inputText.value = event.target.result;
+                reader.onload = function (event) {
+                    document.getElementById('image_url').value = event.target.result;
+                    updatePreview();
                 };
-
                 reader.readAsDataURL(file);
             }
         });
-        const button = document.querySelector('.button');
-        const submit = document.querySelector('.submit');
 
-        function toggleClass() {
-            if (!button.classList.contains('active')) {
-            button.classList.add('active');
-            // Chỉ gọi hàm xử lý submit khi hoàn thành animation
-            button.addEventListener('transitionend', handleAnimationEnd);
+        function updatePreview() {
+            var imageUrl = document.getElementById('image_url').value;
+            var imagePreview = document.getElementById('image-preview');
+            var previewContainer = document.getElementById('preview-container');
+
+            if (imageUrl) {
+                imagePreview.src = imageUrl;
+                previewContainer.style.display = 'block';
+            } else {
+                previewContainer.style.display = 'none';
             }
         }
-        function handleAnimationEnd(event) {
-        // Kiểm tra xem event.target có phải là button và animationName là 'transform'
-            if (event.target === button && event.propertyName === 'transform') {
-                // Khi animation hoàn thành, xử lý sự kiện submit
-                submitForm();
-            }
-        }
-
-        function submitForm() {
-            // Xử lý submit form ở đây, ví dụ gửi request AJAX
-            var formData = new FormData();
-            formData.append('image_url', document.querySelector('#image_url').value);
-
-            // Hiển thị lại hiệu ứng loading
-            loadingElement.style.display = 'flex';
-
-            // Gửi request lên server, ví dụ sử dụng fetch API
-            fetch('/predict', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Xử lý kết quả trả về từ server ở đây, ví dụ hiển thị kết quả
-                console.log(data);
-                // Sau khi hoàn thành, ẩn hiệu ứng loading
-                loadingElement.style.display = 'none';
-                // Thêm class finished để hiển thị icon check
-                button.classList.add('finished');
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                // Xử lý lỗi nếu có
-                loadingElement.style.display = 'none';
-            });
-        }
-
-        button.addEventListener('click', toggleClass);
     </script>
-    
 </body>
+
 </html>
