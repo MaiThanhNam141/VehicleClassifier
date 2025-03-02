@@ -4,7 +4,7 @@ VehicleClassifier is a web-based image classification system that uses a Support
 
 ## 🚀 Features
 - Upload or provide a URL for an image.
-- Classify vehicles into categories: Bus, Plane, Car, Bicycle, Motorcycle.
+- Classify vehicles into categories: `Bus`, `Plane`, `Car`, `Bicycle`, `Motorcycle`.
 - Display classification results with accuracy percentages.
 - Visualize prediction probabilities using pie and bar charts.
 - Allow users to provide feedback and improve the model.
@@ -26,7 +26,7 @@ VehicleClassifier/
 │   ├── index.html          # Main page for image upload
 │   ├── result.html         # Results display page
 │── app.py                  # Flask web server
-│── Dignose.py              # Model training and saving script
+│── VehicleClassifier.py    # Model training and saving script
 │── model.pkl               # Trained SVM model
 │── README.md               # Project documentation
 │── requirements.txt        # Dependencies list
@@ -44,7 +44,7 @@ VehicleClassifier/
    ```
 3. Train the model (optional if `model.pkl` exists):
    ```bash
-   python3 Dignose.py
+   python3 VehicleClassifier.py
    ```
 4. Run the Flask application:
    ```bash

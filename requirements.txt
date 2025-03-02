@@ -1,4 +1,8 @@
-
-Flask
-scikit-image
+flask
+scikit-learn
 numpy
+pandas
+scipy
+matplotlib
+scikit-image
+pillow
