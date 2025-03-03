@@ -22,7 +22,7 @@ VehicleClassifier/
 │   ├── style.css           # CSS styles
 │   ├── loading.gif         # Loading animation
 │── templates/
-|	├── error.html			# Log the error to the screen
+|	 ├── error.html			 # Log the error to the screen
 │   ├── index.html          # Main page for image upload
 │   ├── result.html         # Results display page
 │── app.py                  # Flask web server

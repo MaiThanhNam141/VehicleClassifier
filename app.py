@@ -59,5 +59,6 @@ def predict():
     except Exception as e:
         return render_template('error.html', error_message=f"Error processing image: {str(e)}")
 
+
 if __name__ == '__main__':
     app.run(debug=True)
